@@ -5,11 +5,11 @@
 CC = gcc
 LDFLAGS = -pthread -lpthread -lrt
 
-!IF $(debug)==DEBUG
+ifdef debug
 CFLAGS = -Wall -Werror -std=c11 -D_POSIX_THREAD_SEMANTICS -DDEBUG
-!ELSE
+else
 CFLAGS = -Wall -Werror -std=c11 -D_POSIX_THREAD_SEMANTICS
-!ENDIF
+endif
 
 TARGET = code
 
