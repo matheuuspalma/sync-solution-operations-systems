@@ -26,24 +26,30 @@ int main(void)
 
     semaphoreConstructor();
 
+    semaphore.signal();
+    semaphore.wait();
 
     return 0;
 }
 
 static void semaphoreConstructor(void)
 {
-    memcpy(semaphore.signal, signal,sizeof(signal));
-    //semaphore.signal = &signal;
-    memcpy(semaphore.wait, wait, sizeof(wait));
-    //semaphore.wait = &wait;
+    LOG("Constructing");
+    //memcpy(semaphore.signal, &signal(),sizeof(semaphore.signal));
+    semaphore.signal = &signal;
+    //memcpy(semaphore.wait, &wait(), sizeof(semaphore.wait));
+    semaphore.wait = &wait;
+    LOG("Construction sucessfull");
 }
 
 static void wait(void)
 {
     semaphore.control = semaphoreWait;
+    LOG("Waiting!!");
 }
 
 static void signal(void)
 {
     semaphore.control = semaphoreSignal;
+    LOG("Signal!!");
 }
