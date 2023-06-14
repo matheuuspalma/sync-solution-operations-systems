@@ -5,51 +5,85 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "code.h"
+#include <time.h>
+#include <unistd.h>
 
-/********* Variable functions declarations */
+#include "code.h"
 
 
 /********* Statics functions declarations */
 
-static void semaphoreConstructor(void);
-static void wait(void);
-static void signal(void);
+static void semaphoreConstructor(semaphoreStruct, unsigned);
+static void wait(operations *);
+static void signal(operations *);
+static int santaThread(void);
+static int reindeersThread(void);
+static int elvesThread(void);
+
+/********* Variable declarations */
+
+semaphoreStruct santa, reindeers, elves;
 
 /********* Functios definitions*/
-
-semaphoreFunctions semaphore;
-
 int main(void)
 {
+    pthread_t santaId;
+    pthread_t reindeersId;
+    pthread_t elvesId;
+
     LOG("Debug mode on!\n");
 
-    semaphoreConstructor();
+    semaphoreConstructor(santa, 0);
+    semaphoreConstructor(reindeers, 9);
+    semaphoreConstructor(elves, 0);
 
-    semaphore.signal();
-    semaphore.wait();
+    pthread_create(&santaId, NULL, (THREAD_FUNC_PTR)&santaThread, NULL);
+    pthread_create(&reindeersId, NULL,(THREAD_FUNC_PTR)&reindeersThread, NULL);
+    pthread_create(&elvesId, NULL, (THREAD_FUNC_PTR)&elvesThread, NULL);
+
+    sleep(20);
 
     return 0;
 }
 
-static void semaphoreConstructor(void)
+static int santaThread(void)
+{
+    LOG("Santa's thread is running!\n");
+    sleep(10);
+    return OK;
+}
+
+static int reindeersThread(void)
+{
+    LOG("Reindeers' thread is running!\n");
+    sleep(10);
+    return OK;
+}
+
+static int elvesThread(void)
+{
+    LOG("Elves' thread is running!\n");
+    sleep(10);
+    return OK;
+}
+
+static void semaphoreConstructor(semaphoreStruct semaphore, unsigned quantity)
 {
     LOG("Constructing");
-    //memcpy(semaphore.signal, &signal(),sizeof(semaphore.signal));
     semaphore.signal = &signal;
-    //memcpy(semaphore.wait, &wait(), sizeof(semaphore.wait));
     semaphore.wait = &wait;
+    semaphore.counter = quantity;
     LOG("Construction sucessfull");
 }
 
-static void wait(void)
+static void wait(operations *control)
 {
-    semaphore.control = semaphoreWait;
+    *control = semaphoreWait;
     LOG("Waiting!!");
 }
 
-static void signal(void)
+static void signal(operations *control)
 {
-    semaphore.control = semaphoreSignal;
+    *control = semaphoreSignal;
     LOG("Signal!!");
 }
