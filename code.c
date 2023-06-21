@@ -13,7 +13,7 @@
 
 /********* Statics functions declarations */
 
-static void semaphoreConstructor(semaphoreStruct, unsigned);
+static void constructor(christmasStruct, unsigned);
 static void wait(operations *);
 static void signal(operations *);
 static int santaThread(void);
@@ -22,7 +22,7 @@ static int elvesThread(void);
 
 /********* Variable declarations */
 
-semaphoreStruct santa, reindeers, elves;
+christmasStruct santa, reindeers, elves;
 
 /********* Functios definitions*/
 int main(void)
@@ -33,9 +33,9 @@ int main(void)
 
     LOG("Debug mode on!\n");
 
-    semaphoreConstructor(santa, 0);
-    semaphoreConstructor(reindeers, 9);
-    semaphoreConstructor(elves, 0);
+    constructor(santa, 0);
+    constructor(reindeers, 9);
+    constructor(elves, 0);
 
     pthread_create(&santaId, NULL, (THREAD_FUNC_PTR)&santaThread, NULL);
     pthread_create(&reindeersId, NULL,(THREAD_FUNC_PTR)&reindeersThread, NULL);
@@ -67,7 +67,7 @@ static int elvesThread(void)
     return OK;
 }
 
-static void semaphoreConstructor(semaphoreStruct semaphore, unsigned quantity)
+static void constructor(christmasStruct semaphore, unsigned quantity)
 {
     LOG("Constructing");
     semaphore.signal = &signal;
