@@ -14,15 +14,19 @@
 /********* Statics functions declarations */
 
 static void constructor(christmasStruct, unsigned);
-static void wait(operations *);
-static void signal(operations *);
 static int santaThread(void);
 static int reindeersThread(void);
 static int elvesThread(void);
+static int prepareSleigh(void);
+static int getHitched(void);
+static int helpElves(void);
+static int getHelp(void);
 
 /********* Variable declarations */
 
 christmasStruct santa, reindeers, elves;
+
+int processing = 0;
 
 /********* Functios definitions*/
 int main(void)
@@ -34,7 +38,7 @@ int main(void)
     LOG("Debug mode on!\n");
 
     constructor(santa, 0);
-    constructor(reindeers, 9);
+    constructor(reindeers, 0);
     constructor(elves, 0);
 
     pthread_create(&santaId, NULL, (THREAD_FUNC_PTR)&santaThread, NULL);
@@ -49,6 +53,30 @@ int main(void)
 static int santaThread(void)
 {
     LOG("Santa's thread is running!\n");
+    LOG("Santa is sleeping");
+
+    while(processing)
+    {
+
+        if( reindeers.counter == ALL_ELVES_RETURNED ||
+            elves.counter     == MINIMUN_ELVES_IN_TROUBLE)
+        {
+            LOG("Santa should awake !!");
+            LOG("Elves should wait wait until after Christmas!!");
+            prepareSleigh();
+        }
+
+        else if(reindeers.counter != ALL_ELVES_RETURNED ||
+        elves.counter     == MINIMUN_ELVES_IN_TROUBLE )
+        {
+            LOG("Santa should awake !!");
+            helpElves();
+        }
+        else
+        {
+             LOG("Santa should keep resting !!");
+        }
+    }
     sleep(10);
     return OK;
 }
@@ -67,23 +95,28 @@ static int elvesThread(void)
     return OK;
 }
 
-static void constructor(christmasStruct semaphore, unsigned quantity)
+static void constructor(christmasStruct e, unsigned quantity)
 {
     LOG("Constructing");
-    semaphore.signal = &signal;
-    semaphore.wait = &wait;
-    semaphore.counter = quantity;
+    e.lock = opened;
+    e.counter = quantity;
     LOG("Construction sucessfull");
 }
 
-static void wait(operations *control)
+static int prepareSleigh(void)
 {
-    *control = semaphoreWait;
-    LOG("Waiting!!");
+    return 0;
+}
+static int getHitched(void)
+{
+    return 0;
 }
 
-static void signal(operations *control)
+static int helpElves(void)
 {
-    *control = semaphoreSignal;
-    LOG("Signal!!");
+    return 0;
+}
+static int getHelp(void)
+{
+    return 0;
 }
