@@ -84,6 +84,7 @@ static int santaThread(void)
 static int reindeersThread(void)
 {
     LOG("Reindeers' thread is running!\n");
+    getHitched();
     sleep(10);
     return OK;
 }
@@ -91,6 +92,7 @@ static int reindeersThread(void)
 static int elvesThread(void)
 {
     LOG("Elves' thread is running!\n");
+    getHelp();
     sleep(10);
     return OK;
 }
