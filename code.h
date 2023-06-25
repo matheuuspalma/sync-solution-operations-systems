@@ -13,15 +13,34 @@
 #define LOG(...) do{ if(LOG_ON) {printf("%d:%s(): ", __LINE__, __func__ ); printf(__VA_ARGS__); printf("\n");}} while(0)
 
 typedef enum{
+    true,
+    false
+}boolean;
+
+typedef enum{
     closed = 0,
     opened
 }operations;
 
-typedef struct christmasFunctions_
+typedef struct reindeersStruct_
 {
     operations lock;
     unsigned int counter;
-}christmasStruct;
+}reindeersStruct;
+
+
+typedef struct elvesStruct_
+{
+    operations lock;
+    unsigned int elvesWithTrouble;
+}elvesStruct;
+
+typedef struct santaStruct_
+{
+    operations lock;
+    boolean shouldSleep;
+    boolean elveShouldWaitChristmasEnd;
+}santaStruct;
 
 typedef void * (*THREAD_FUNC_PTR)(void *);
 
@@ -31,6 +50,7 @@ typedef void * (*THREAD_FUNC_PTR)(void *);
 
 /* MACROS */
 
-#define ALL_ELVES_RETURNED       9
+#define ALL_REINDEERS_RETURNED       9
 #define MINIMUN_ELVES_IN_TROUBLE 3
+#define IS_EVEN(X)               ((X & 0x01) != 1)
 #endif //_CODE_H
