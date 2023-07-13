@@ -106,6 +106,7 @@ static int reindeersThread(void)
         }
         if(reindeers.counter == ALL_REINDEERS_RETURNED)
         {
+            LOG("All reindeers getting Hitched !!");
             getHitched();
             break;
         }
@@ -158,12 +159,6 @@ static int helpElves(void)
 static int getHelp(void)
 {
 
-    /*
-    pedir ajuda a santa
-    receber a resposta
-    caso sim -> zerar numero de elves with trouble
-    caso não -> esperar pelo fim do natal
-    */
     return 0;
 }
 
