@@ -26,6 +26,7 @@ typedef struct reindeersStruct_
 {
     operations lock;
     unsigned int counter;
+    boolean reindeersShouldGetHitched;
 }reindeersStruct;
 
 
@@ -33,13 +34,13 @@ typedef struct elvesStruct_
 {
     operations lock;
     unsigned int elvesWithTrouble;
+    boolean elvesShouldWaitChristmasEnd;
 }elvesStruct;
 
 typedef struct santaStruct_
 {
     operations lock;
     boolean shouldSleep;
-    boolean elveShouldWaitChristmasEnd;
 }santaStruct;
 
 typedef void * (*THREAD_FUNC_PTR)(void *);

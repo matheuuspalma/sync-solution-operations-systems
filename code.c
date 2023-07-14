@@ -31,6 +31,18 @@ reindeersStruct reindeers;
 elvesStruct elves;
 time_t seed;
 
+/*This is a variable of control and is responsible to say if
+  the variable elvesWithTrouble can be readed. */
+boolean elvesWithTroubleIsFree = true;
+
+/*This is a variable of control and is responsible to say if
+  the variable reindeersCounteR can be readed. */
+boolean reindeersCounterIsFree = true;
+
+/*This is a variable of control and is responsible to say if
+  the variable elvesShouldWaitChristmasEnd can be readed. */
+boolean elvesShouldWaitChristmasEndIsFree = true;
+
 /********* Functios definitions*/
 int main(void)
 {
@@ -69,28 +81,37 @@ static int santaThread(void)
 
     while(1)
     {
-        if(reindeers.counter == ALL_REINDEERS_RETURNED)
+        if(reindeersCounterIsFree == true)
         {
-            LOG("Santa should awake !!");
-            LOG("Elves should wait wait until after Christmas!!");
-            prepareSleigh();
-            santa.elveShouldWaitChristmasEnd = true;
-            break;;
-        }
-
-        else if(reindeers.counter != ALL_REINDEERS_RETURNED &&
-                elves.elvesWithTrouble >= MINIMUN_ELVES_IN_TROUBLE )
-        {
-            LOG("Santa should awake !!");
-            helpElves();
+            if(reindeers.counter >= ALL_REINDEERS_RETURNED)
+            {
+                LOG("Santa should awake !!");
+                LOG("Elves should wait until after Christmas!!");
+                prepareSleigh();
+                reindeers.reindeersShouldGetHitched = true;
+            }
+            if(elvesWithTroubleIsFree == true)
+            {
+                if(elves.elvesWithTrouble >= MINIMUN_ELVES_IN_TROUBLE )
+                {
+                    LOG("Santa should awake and help Elves!!");
+                    helpElves();
+                }
+                else
+                {
+                    LOG("Santa should keep resting !!");
+                }
+            }
+            else
+            {
+                LOG("Santa should keep resting !!");
+            }
         }
         else
         {
-             LOG("Santa should keep resting !!");
+            LOG("Santa should keep resting !!");
         }
-        sleep(1);
     }
-    sleep(10);
     return OK;
 }
 
@@ -101,16 +122,19 @@ static int reindeersThread(void)
     {
         if(IS_EVEN(rand())) //mocking a radom event to simulate the reindeers arriving from south pacific.
         {
+            /* Região crítica */
+            reindeersCounterIsFree = false;
             reindeers.counter++;
+            reindeersCounterIsFree = true;
             LOG("waiting in a warming hut");
         }
-        if(reindeers.counter == ALL_REINDEERS_RETURNED)
+
+        if(reindeers.reindeersShouldGetHitched = true)
         {
             LOG("All reindeers getting Hitched !!");
             getHitched();
             break;
         }
-        sleep(1);
     }
     return OK;
 }
@@ -121,27 +145,39 @@ static int elvesThread(void)
 
     while (1)
     {
-        if(IS_EVEN(rand())) //mocking a radom event to simulate the elves getting trouble.
+        if(IS_EVEN(rand())) //mocking a random event to simulate the elves getting trouble.
         {
-            elves.elvesWithTrouble += 1;
-            if(santa.elveShouldWaitChristmasEnd == false)
+            if(elvesShouldWaitChristmasEndIsFree == true)
             {
-                LOG("Getting help from santa !!");
-                getHelp();
-            }
-            else
-            {
-                LOG("Waiting for christmas end!!");
-                break;
+                if(santa.elvesShouldWaitChristmasEnd == false)
+                {
+                    LOG("Getting help from santa !!");
+                    getHelp();
+
+                    /* Região crítica */
+                    elvesWithTroubleIsFree = false;
+                    elves.elvesWithTrouble += 1;
+                    elvesWithTroubleIsFree = true;
+                    /*****************/
+                }
+                else
+                {
+                    LOG("Waiting for christmas end!!");
+                    break;
+                }
             }
         }
-        sleep(2);
     }
     return OK;
 }
 
 static int prepareSleigh(void)
 {
+    /* Região crítica */
+    elvesShouldWaitChristmasEndIsFree = false;
+    santa.elvesShouldWaitChristmasEnd = true;
+    elvesShouldWaitChristmasEndIsFree = true;
+
     return 0;
 }
 static int getHitched(void)
@@ -153,28 +189,33 @@ static int helpElves(void)
 {
     LOG("Helping elves!");
     /*região critica*/
-    elves.elvesWithTrouble = 0;
+    while(elvesWithTroubleIsFree == false)
+    {
+
+    }
+    elves.elvesWithTrouble -= 3;
     return OK;
 }
 static int getHelp(void)
 {
 
-    return 0;
+    return OK;
 }
 
 static void santaConstructor(void)
 {
     santa.lock = opened;
     santa.shouldSleep = true;
-    santa.elveShouldWaitChristmasEnd = false;
 }
 static void reindeersConstructor(void)
 {
     reindeers.lock = opened;
     reindeers.counter = 0;
+    reindeers.reindeersShouldGetHitched = false;
 }
 static void elvesConstructor(void)
 {
     elves.lock = opened;
     elves.elvesWithTrouble = 0;
+    elves.elvesShouldWaitChristmasEnd = false;
 }
