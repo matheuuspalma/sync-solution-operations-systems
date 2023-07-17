@@ -47,7 +47,7 @@ typedef void * (*THREAD_FUNC_PTR)(void *);
 
 
 #define NUMBER_OF_REINDEERS      9
-#define NUMBER_OF_ELVES          10
-#define ALL_ELVES_RETURNED       9
+#define NUMBER_OF_ELVES          5
+#define ALL_REINDEERS_RETURNED   10
 #define MINIMUN_ELVES_IN_TROUBLE 3
 #endif //_CODE_H
