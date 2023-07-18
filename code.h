@@ -5,6 +5,25 @@
 #include <stdio.h>
 #include <string.h>
 
+/*     MACROS OF PARAMETRIZATION     */
+/*************************************/
+
+#define NUMBER_OF_CHRISTMAS      5
+#define NUMBER_MAX_ELVES         100
+     
+#define NUMBER_OF_REINDEERS      9
+#define ALL_REINDEERS_RETURNED   9
+#define MAX_ELVES_IN_TROUBLE     3
+
+#define RED					    "\e[0;31m"
+#define GREEN					"\e[0;32m"
+#define BLUE					"\e[0;34m"
+#define YELLOW					"\e[0;33m"
+#define WHITE					"\e[0;37m"
+#define RESET					"\e[0m"
+
+/************************************/
+
 #ifdef DEBUG
 #define LOG_ON 1
 #else
@@ -31,25 +50,6 @@ typedef void * (*THREAD_FUNC_PTR)(void *);
 /* Return Code*/
 
 #define OK 0
-
-/* MACROS */
-
-#define RED					"\e[0;31m"
-#define BLACK					"\e[0;30m"
-#define RED					"\e[0;31m"
-#define GREEN					"\e[0;32m"
-#define BLUE					"\e[0;34m"
-#define YELLOW					"\e[0;33m"
-#define MAGENTA       				"\e[0;35m"
-#define CYAN					"\e[0;36m"
-#define WHITE					"\e[0;37m"
-#define RESET					"\e[0m"
-
-
-#define NUMBER_OF_REINDEERS      9
-#define NUMBER_MAX_ELVES         100
-#define ALL_REINDEERS_RETURNED   9
-#define MAX_ELVES_IN_TROUBLE 3
 
 typedef enum{
     true,

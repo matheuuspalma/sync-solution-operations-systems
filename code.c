@@ -37,7 +37,7 @@ reindeersStruct reindeers;
 elvesStruct elves;
 
 
-int qtChristmas = 0;
+int qtChristmas = NUMBER_OF_CHRISTMAS;
 
 /********* Main Function definition*/
 int main(void)
