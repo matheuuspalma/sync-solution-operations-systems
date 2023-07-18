@@ -8,9 +8,9 @@
 /*     MACROS OF PARAMETRIZATION     */
 /*************************************/
 
-#define NUMBER_OF_CHRISTMAS      5
-#define NUMBER_MAX_ELVES         100
-     
+#define NUMBER_OF_CHRISTMAS      3
+#define NUMBER_MAX_ELVES         20
+
 #define NUMBER_OF_REINDEERS      9
 #define ALL_REINDEERS_RETURNED   9
 #define MAX_ELVES_IN_TROUBLE     3
@@ -72,6 +72,7 @@ typedef struct elvesStruct_
 typedef struct santaStruct_
 {
     boolean santaIsHelping;
+    boolean santaIsGoingDeliveryGifts;
 }santaStruct;
 
 //#define IS_EVEN(X)               ((X & 0x01) != 1)
