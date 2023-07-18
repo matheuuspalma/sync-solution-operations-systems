@@ -11,7 +11,7 @@
 #define LOG_ON 0
 #endif
 
-#define LOG(...) do{ if(LOG_ON) {printf("%d:%s(): ", __LINE__, __func__ ); printf(__VA_ARGS__); printf("\n");}} while(0)
+#define LOG(...) do{ if(LOG_ON) {printf("DEBUG %d:%s(): ", __LINE__, __func__ ); printf(__VA_ARGS__); printf("\n");}} while(0)
 
 
 typedef enum{
@@ -47,7 +47,34 @@ typedef void * (*THREAD_FUNC_PTR)(void *);
 
 
 #define NUMBER_OF_REINDEERS      9
-#define NUMBER_OF_ELVES          5
-#define ALL_REINDEERS_RETURNED   10
-#define MINIMUN_ELVES_IN_TROUBLE 3
+#define NUMBER_MAX_ELVES         100
+#define ALL_REINDEERS_RETURNED   9
+#define MAX_ELVES_IN_TROUBLE 3
+
+typedef enum{
+    true,
+    false
+}boolean;
+
+typedef struct reindeersStruct_
+{
+    unsigned int counter;
+    boolean reindeersShouldGetHitched;
+}reindeersStruct;
+
+
+typedef struct elvesStruct_
+{
+    unsigned int elvesWithTrouble;
+    boolean elvesShouldWaitChristmasEnd;
+}elvesStruct;
+
+typedef struct santaStruct_
+{
+    boolean santaIsHelping;
+}santaStruct;
+
+//#define IS_EVEN(X)               ((X & 0x01) != 1)
+#define EVENT(X)               ((X%10) == 0 )
+
 #endif //_CODE_H

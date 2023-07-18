@@ -7,170 +7,191 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "code.h"
 
 
 /********* Statics functions declarations */
 
-static void constructor(christmasStruct, unsigned);
+static void reindeersConstructor(void);
+static void elvesConstructor(void);
+static void santaConstructor(void);
 static int santaThread(void);
-static int reindeersThread(void);
-static int elvesThread(void);
+static int reindeersThread(unsigned int *);
+static int elvesThread(unsigned int *);
 static int prepareSleigh(void);
 static int getHitched(void);
 static int helpElves(void);
-static int getHelp(void);
+static void getHelp(unsigned int *);
+static int random(void);
 
 /********* Variable declarations */
-
-pthread_cond_t santasRest = PTHREAD_COND_INITIALIZER;
-pthread_cond_t reindeersNoReady = PTHREAD_COND_INITIALIZER;
-
-int santaFinalized = 0;
-int reindeersFinalized = 0;
-int elvesFinalized = 0;
 
 pthread_mutex_t santaMutex;
 pthread_mutex_t reindeersMutex;
 pthread_mutex_t elvesMutex;
 
-christmasStruct santa, reindeers, elves;
+santaStruct santa;
+reindeersStruct reindeers;
+elvesStruct elves;
 
 
-int processing = 1;
+int qtChristmas = 0;
 
 /********* Main Function definition*/
 int main(void)
 {
-    
+
     unsigned char index;
-    pthread_t santaId;
-    pthread_t reindeersId [NUMBER_OF_REINDEERS];
-    pthread_t elvesId[NUMBER_OF_ELVES];
+    pthread_t santaT;
+    pthread_t reindeersT[NUMBER_OF_REINDEERS];
+    pthread_t elvesT[NUMBER_MAX_ELVES];
+    unsigned int elvesId[NUMBER_MAX_ELVES];
+    unsigned int reindeersId[NUMBER_OF_REINDEERS];
+
+    void *retValSanta;
 
     LOG("Debug mode on!\n");
 
-    constructor(santa, 0);
-    constructor(reindeers, 0);
-    constructor(elves, 0);
+    santaConstructor();
+    reindeersConstructor();
+    elvesConstructor();
 
-    pthread_create(&santaId, NULL, (THREAD_FUNC_PTR)&santaThread, NULL);
+    pthread_create(&santaT, NULL, (THREAD_FUNC_PTR)&santaThread, NULL);
 
-    for(index = 0; index < NUMBER_OF_ELVES; index++){
-        pthread_create(&elvesId[index], NULL, (THREAD_FUNC_PTR)&elvesThread, NULL);
+    for(index = 0; index < NUMBER_MAX_ELVES; index++){
+        elvesId[index] = index + 1;
+        pthread_create(&elvesT[index], NULL, (THREAD_FUNC_PTR)&elvesThread, (void *)&elvesId[index]);
     }
-    sleep(10);
+    sleep(1);
     for(index = 0; index < NUMBER_OF_REINDEERS; index++){
-        pthread_create(&reindeersId[index], NULL,(THREAD_FUNC_PTR)&reindeersThread, NULL);
+        reindeersId[index] = index + 1;
+        pthread_create(&reindeersT[index], NULL,(THREAD_FUNC_PTR)&reindeersThread, (void *)&reindeersId[index]);
     }
 
-    
-    sleep(200);
+    /* Papai noel vai ser a ultima thread a terminar. ou seja, ao aguardar por ela garantimos que as outras ja terminaram.*/
+    pthread_join(santaT, &retValSanta);
 
-    return 0;
+    if(qtChristmas)
+    {
+        qtChristmas--;
+        main();
+    }
+
+    return OK;
 }
 
 /********* Threads Functios definitions*/
 static int santaThread(void)
 {
-    pthread_mutex_init(&santaMutex, NULL);
 
-    printf("\n%sSanta's thread is running!%s\n", WHITE, RESET);
+    LOG("\n%sSanta's thread is running!%s\n", WHITE, RESET);
     printf("\n%sSanta is sleeping%s\n",YELLOW, RESET);
 
-    while(processing)
+    while(1)
     {
-        pthread_mutex_lock(&santaMutex);
-        santaFinalized = 0;
-        pthread_mutex_unlock(&santaMutex);
-        if( reindeers.counter == ALL_REINDEERS_RETURNED)
+        pthread_mutex_lock(&reindeersMutex);
+        pthread_mutex_lock(&elvesMutex);
+        if(reindeers.counter == ALL_REINDEERS_RETURNED)
         {
-            printf("\n%sSanta should awake !!%s\n", YELLOW, RESET);
-            printf("\n%sElves should wait wait until after Christmas!!%s\n", YELLOW, RESET);
+            pthread_mutex_unlock(&reindeersMutex);
+            pthread_mutex_unlock(&elvesMutex);
+            printf("\n%sSanta should awake to prepare Sleigh !!%s\n", YELLOW, RESET);
+            printf("\n%sElves should wait until Christmas END!!%s\n", YELLOW, RESET);
             prepareSleigh();
-            continue;
-        }
+            break;
 
-        if(elves.counter >= MINIMUN_ELVES_IN_TROUBLE && reindeers.counter < ALL_REINDEERS_RETURNED )
+        }
+        if(elves.elvesWithTrouble >= MAX_ELVES_IN_TROUBLE)
         {
-            printf("\n%sSanta should awake !!%s\n", YELLOW, RESET);
+            pthread_mutex_unlock(&elvesMutex);
+            pthread_mutex_unlock(&reindeersMutex);
+            printf("\n%sSanta should awake to help Elves !!%s\n", YELLOW, RESET);
             helpElves();
-            continue;
         }
-        
-        printf("\n%sSanta should keep resting !!%s\n", YELLOW, RESET);
+        else
+        {
+            pthread_mutex_unlock(&elvesMutex);
+            pthread_mutex_unlock(&reindeersMutex);
+            printf("\n%sSanta should keep resting !!%s\n", YELLOW, RESET);
+        }
+        sleep(1);
 
-        pthread_mutex_lock(&santaMutex);
-        while(santaFinalized == 0)
-            pthread_cond_wait(&santasRest, &santaMutex);
-        pthread_mutex_unlock(&santaMutex);
     }
     return OK;
 }
 
-static int reindeersThread(void)
+static int reindeersThread(unsigned int *id)
 {
-    pthread_mutex_init(&reindeersMutex, NULL);
-   
-    unsigned short cicle = 0;
+    LOG("\n%sReindeers thread is running!%s\n", WHITE, RESET);
 
-    printf("\n%sReindeers thread is running!%s\n", WHITE, RESET);
-    sleep(10);
-    
-    while(reindeersFinalized == 0){
+    sleep(1);
 
-        if(reindeers.counter == ALL_REINDEERS_RETURNED){
-            cicle = 1;
-            getHitched();
-              
-        }
-
-        if(reindeers.counter < 9)
+    while(1)
+    {
+        if(EVENT(random())) //mock that simulate an reindeer arriving or not from pacific
         {
-            pthread_mutex_lock(&elvesMutex);
-            elvesFinalized = 1;
-            pthread_cond_signal(&reindeersNoReady);
-            pthread_mutex_unlock(&elvesMutex);
-        }
+            printf("\n%sI'm the reindeers %d and arrived in the Pole!%s\n", BLUE, *id, RESET);
 
-        srand(time(NULL));
-        while (!(cicle))
-        {
-            if (rand() % 5 == 1) {
-            cicle = 1;
+            pthread_mutex_lock(&reindeersMutex);
             reindeers.counter += 1;
-            printf("\n%sA reindeer arrived in the Pole!%s\n", BLUE, RESET);
+            LOG("reindeers counter = %d", reindeers.counter);
+            pthread_mutex_unlock(&reindeersMutex);
+            break;
+        }
+        sleep(1);
+    }
 
-            pthread_mutex_lock(&santaMutex);
-            santaFinalized = 1;
-            pthread_cond_signal(&santasRest);
-            pthread_mutex_unlock (&santaMutex);
+    printf("\n%sWaiting in a warming hut! %s\n", BLUE, RESET);
+
+    while(1)
+    {
+        if(reindeers.reindeersShouldGetHitched == true){
+            getHitched();
+            break;
+        }
+        sleep(1);
+    }
+    return OK;
+}
+
+static int elvesThread(unsigned int *id)
+{
+    pthread_t getHelpId;
+    LOG("\n%sElves' thread is running!%s\n", WHITE, RESET);
+
+    while(1)
+    {
+        pthread_mutex_lock(&elvesMutex);
+        if(elves.elvesShouldWaitChristmasEnd == true)
+        {
+            pthread_mutex_unlock(&elvesMutex);
+            break;
+        }
+        pthread_mutex_unlock(&elvesMutex);
+
+        if (EVENT(random())) /*Condicional to mock an random event that simulate an elve getting trouble making toys.*/
+        {
+            while (1)
+            {
+                pthread_mutex_lock(&elvesMutex);
+                if(elves.elvesWithTrouble < MAX_ELVES_IN_TROUBLE)
+                {
+                    pthread_create(&getHelpId, NULL, (THREAD_FUNC_PTR)&getHelp, (void *)id);
+                    elves.elvesWithTrouble++;
+                    LOG("Elves counter = %d", elves.elvesWithTrouble);
+                    pthread_mutex_unlock(&elvesMutex); //is necessary call unlock because the thread will be waiting getHelp finish.
+                    pthread_join(getHelpId, NULL);
+                    break;
+                }
+            pthread_mutex_unlock(&elvesMutex);
+            break;
             }
         }
-        pthread_mutex_unlock(&reindeersMutex); 
-    }
-    return OK;
-}
-
-static int elvesThread(void)
-{
-    pthread_mutex_init(&elvesMutex, NULL);
-    printf("\n%sElves' thread is running!%s\n", WHITE, RESET);
-    sleep(10);
-
-    if(reindeers.counter == ALL_REINDEERS_RETURNED){
-    pthread_mutex_lock(&elvesMutex);
-        while(elvesFinalized == 0)
-            pthread_cond_wait(&reindeersNoReady, &elvesMutex);
-        pthread_mutex_unlock(&elvesMutex);
+    //    sleep(1);
     }
 
-    pthread_mutex_lock(&elvesMutex);
-    while(elvesFinalized == 0)
-        getHelp();
-    elvesFinalized = 0;
-    pthread_mutex_unlock(&elvesMutex);
     return OK;
 }
 
@@ -179,79 +200,82 @@ static int elvesThread(void)
 static int prepareSleigh(void)
 {
 
-    pthread_mutex_lock(&reindeersMutex);
-    
     printf("\n%sPreparing sleigh!%s\n", BLUE, RESET);
-    sleep(5);
-    reindeersFinalized = 0;
-    pthread_cond_broadcast(&reindeersNoReady);
-    while(reindeersFinalized != ALL_REINDEERS_RETURNED)
-        pthread_cond_wait(&reindeersNoReady, &reindeersMutex);
+
+    /*Não tem necessidade de lock devido ao fato de serem escrita apenas uma vez em uma thread em apenas um lugar*/
+
+    reindeers.reindeersShouldGetHitched = true;
+    elves.elvesShouldWaitChristmasEnd = true;
+
     printf("\n%sDelivering gifts...%s\n", BLUE, RESET);
-    sleep(10);
-    reindeers.counter -= 9;
-    printf("\n%sThe reindeers go back to South Pacific!%s\n", BLUE, RESET);
-    
-    pthread_mutex_lock(&elvesMutex);
-    elvesFinalized = 1;
-    pthread_mutex_unlock(&elvesMutex);
 
-    pthread_cond_signal(&santasRest);
-    pthread_cond_signal(&elvesCan);
-    pthread_mutex_unlock(&reindeersMutex);
+    sleep(3);
 
-
-    return 0;
+    return OK;
 }
 
 static int getHitched(void)
 {
-    sleep(5); 
-    pthread_mutex_lock(&reindeersMutex);
-    reindeersFinalized += 1;
-    printf("%s\nSleigh Hitched!%s\n", BLUE, RESET);   
-    pthread_cond_broadcast(&reindeersNoReady);
-    pthread_mutex_unlock(&reindeersMutex);
-    return 0;
+    printf("%s\nSleigh Hitched!%s\n", BLUE, RESET);
+    return OK;
 }
 
 static int helpElves(void)
 {
     unsigned short index;
     printf("\n%sHelping elves...%s\n", RED, RESET);
-    for(index=0; index < MINIMUN_ELVES_IN_TROUBLE; index++){
-        elves.counter--;
-        printf("\n%sAn elf was helped!%s\n", YELLOW, RESET);
-        sleep(5);
-    }
 
-    return 0;
+    pthread_mutex_lock(&santaMutex);
+    santa.santaIsHelping = true;
+
+    pthread_mutex_lock(&elvesMutex);
+    for(index=0; index < MAX_ELVES_IN_TROUBLE; index++){
+        elves.elvesWithTrouble--;
+        printf("\n%sAn elf was helped!%s\n", YELLOW, RESET);
+        sleep(1);
+    }
+    pthread_mutex_unlock(&elvesMutex);
+    pthread_mutex_unlock(&santaMutex);
+    return OK;
 }
 
-static int getHelp(void)
+static void getHelp(unsigned int *id)
+{
+
+    printf("\n%sI'm the elve number %d and i'm with trouble.\nAsking help for Santa!!!!%s\n",GREEN, *id,RESET);
+
+    while(1) {
+        pthread_mutex_lock(&santaMutex);
+        if (santa.santaIsHelping == true) {
+            pthread_mutex_unlock(&santaMutex);
+            break;
+        }
+        pthread_mutex_unlock(&santaMutex);
+        sleep(1);
+    }
+}
+
+static int random()
 {
     srand(time(NULL));
-    while (!(elvesFinalized)) {
-        if (rand() % 5 == 1) {
-            elves.counter += 1;
-            printf("%s\nI need help (An Elf).%s\n", GREEN, RESET);
-            
-            pthread_mutex_lock(&santaMutex);
-            pthread_cond_signal(&santasRest);
-            pthread_mutex_unlock(&santaMutex);
 
-            elvesFinalized = 1;
-            sleep(5);
-        }
-    }
-    
-    return 1;
+    return rand();
 }
 
-static void constructor(christmasStruct e, unsigned quantity)
+static void santaConstructor(void)
 {
-    LOG("Constructing");
-    e.lock = opened;
-    e.counter = quantity;
-    LOG("Construction sucessfull");
+    pthread_mutex_init(&santaMutex, NULL);
+    santa.santaIsHelping = false;
+}
+static void reindeersConstructor(void)
+{
+    pthread_mutex_init(&reindeersMutex, NULL);
+    reindeers.counter = 0;
+    reindeers.reindeersShouldGetHitched = false;
+}
+static void elvesConstructor(void)
+{
+    pthread_mutex_init(&elvesMutex, NULL);
+    elves.elvesWithTrouble = 0;
+    elves.elvesShouldWaitChristmasEnd = false;
 }
