@@ -1,6 +1,5 @@
 ## Sync-solution-operations-systems
-The solutin to the "The Santa Claus problem" - trio 19
-Sistemas Operacionas - Universidade Federal do Rio de Janeiro
+The solutin to the "The Santa Claus problem" 
 
 - The number limit of elves is parametrized by the macro "NUMBER_MAX_ELVES " in the .h file. (by default, this value is 100)
 
